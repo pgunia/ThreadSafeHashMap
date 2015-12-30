@@ -13,27 +13,27 @@ class HashMap {
 public:
 	HashMap() {
 		// construct zero initialized hash table of size
-		table = new HashNode<K, V> *[constants::TABLE_SIZE]();
+		mTable = new HashNode<K, V> *[constants::TABLE_SIZE]();
 	}
 
 	~HashMap() {
 		// destroy all buckets one by one
 		for ( int i = 0; i < constants::TABLE_SIZE; ++i ) {
-			auto entry = table[i];
+			auto entry = mTable[i];
 			while ( entry != NULL ) {
 				auto prev = entry;
 				entry = entry->getNext();
 				delete prev;
 			}
-			table[i] = NULL;
+			mTable[i] = NULL;
 		}
 		// destroy the hash table
-		delete[] table;
+		delete[] mTable;
 	}
 
 	bool get( const K &key, V &value ) {
-		auto hashValue = hashFunc( key );
-		auto entry = table[hashValue % constants::TABLE_SIZE];
+		auto hashValue = mHashFunc( key );
+		auto entry = mTable[hashValue % constants::TABLE_SIZE];
 
 		while ( entry != NULL ) {
 			if ( entry->getKey() == key ) {
@@ -46,11 +46,11 @@ public:
 	}
 
 	void put( const K &key, const V &value ) {
-		size_t hashValue = hashFunc( key );
+		size_t hashValue = mHashFunc( key );
 		
 		HashNode<K, V> *prev = NULL;
 		size_t index = hashValue % constants::TABLE_SIZE;
-		auto entry = table[index];
+		auto entry = mTable[index];
 		// HashNode<K, V> *entry = table[hashValue];
 
 		while ( entry != NULL && entry->getKey() != key ) {
@@ -62,7 +62,7 @@ public:
 			entry = new HashNode<K, V>( key, value );
 			if ( prev == NULL ) {
 				// insert as first bucket
-				table[index] = entry;
+				mTable[index] = entry;
 			} else {
 				prev->setNext( entry );
 			}
@@ -73,10 +73,10 @@ public:
 	}
 
 	void remove( const K &key ) {
-		auto hashValue = hashFunc( key );
+		auto hashValue = mHashFunc( key );
 		HashNode<K, V> *prev = NULL;
 		size_t index = hashValue % constants::TABLE_SIZE;
-		auto entry = table[index];
+		auto entry = mTable[index];
 
 		while ( entry != NULL && entry->getKey() != key ) {
 			prev = entry;
@@ -89,7 +89,7 @@ public:
 		} else {
 			if ( prev == NULL ) {
 				// remove first bucket of the list
-				table[index] = entry->getNext();
+				mTable[index] = entry->getNext();
 			} else {
 				prev->setNext( entry->getNext() );
 			}
@@ -99,6 +99,6 @@ public:
 
 private:
 	// hash table
-	HashNode<K, V> **table;
-	F hashFunc;
+	HashNode<K, V> **mTable;
+	F mHashFunc;
 };
