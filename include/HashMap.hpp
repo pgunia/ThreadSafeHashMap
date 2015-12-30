@@ -13,23 +13,11 @@ class HashMap {
 public:
 	HashMap() {
 		// construct zero initialized hash table of size
-		mTable = new HashNode<K, V> *[constants::TABLE_SIZE]();
-		mSize = 0;
+		init();
 	}
 
 	~HashMap() {
-		// destroy all buckets one by one
-		for ( int i = 0; i < constants::TABLE_SIZE; ++i ) {
-			auto entry = mTable[i];
-			while ( entry != NULL ) {
-				auto prev = entry;
-				entry = entry->getNext();
-				delete prev;
-			}
-			mTable[i] = NULL;
-		}
-		// destroy the hash table
-		delete[] mTable;
+		purge();
 	}
 
 	bool get( const K &key, V &value ) {
@@ -103,11 +91,36 @@ public:
 		}
 	}
 
+	void clear() {
+		purge();
+		init();
+	}
+
 	int size() {
 		return mSize;
 	}
 
 private:
+	void init() {
+		mTable = new HashNode<K, V> *[constants::TABLE_SIZE]();
+		mSize = 0;
+	}
+
+	void purge() {
+		// destroy all buckets one by one
+		for ( int i = 0; i < constants::TABLE_SIZE; ++i ) {
+			auto entry = mTable[i];
+			while ( entry != NULL ) {
+				auto prev = entry;
+				entry = entry->getNext();
+				delete prev;
+			}
+			mTable[i] = NULL;
+		}
+		// destroy the hash table
+		delete[] mTable;
+	}
+
 	// hash table
 	HashNode<K, V> **mTable;
 	F mHashFunc;
