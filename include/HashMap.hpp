@@ -4,14 +4,14 @@
 #include "HashNode.hpp"
 #include "KeyHash.hpp"
 #include <sstream>
-#include <Windows.h>
+// #include <Windows.h>
 #include <functional>
 
 // Hash map class template
 template <typename K, typename V, typename F = std::hash<K> >
 class HashMap {
 public:
-	HashMap() {
+	HashMap(int size = constants::TABLE_SIZE):mTableSize(size) {
 		// construct zero initialized hash table of size
 		init();
 	}
@@ -22,7 +22,7 @@ public:
 
 	bool get( const K &key, V &value ) {
 		auto hashValue = mHashFunc( key );
-		auto entry = mTable[hashValue % constants::TABLE_SIZE];
+		auto entry = mTable[hashValue % mTableSize];
 
 		while ( entry != NULL ) {
 			if ( entry->getKey() == key ) {
@@ -38,7 +38,7 @@ public:
 		size_t hashValue = mHashFunc( key );
 		
 		HashNode<K, V> *prev = NULL;
-		size_t index = hashValue % constants::TABLE_SIZE;
+		const size_t index = hashValue % mTableSize;
 		auto entry = mTable[index];
 		// HashNode<K, V> *entry = table[hashValue];
 
@@ -66,7 +66,7 @@ public:
 	void remove( const K &key ) {
 		auto hashValue = mHashFunc( key );
 		HashNode<K, V> *prev = NULL;
-		size_t index = hashValue % constants::TABLE_SIZE;
+		size_t index = hashValue % mTableSize;
 		auto entry = mTable[index];
 
 		while ( entry != NULL && entry->getKey() != key ) {
@@ -102,13 +102,13 @@ public:
 
 private:
 	void init() {
-		mTable = new HashNode<K, V> *[constants::TABLE_SIZE]();
+		mTable = new HashNode<K, V> *[mTableSize]();
 		mSize = 0;
 	}
 
 	void purge() {
 		// destroy all buckets one by one
-		for ( int i = 0; i < constants::TABLE_SIZE; ++i ) {
+		for ( int i = 0; i < mTableSize; ++i ) {
 			auto entry = mTable[i];
 			while ( entry != NULL ) {
 				auto prev = entry;
@@ -125,4 +125,5 @@ private:
 	HashNode<K, V> **mTable;
 	F mHashFunc;
 	int mSize;
+	int mTableSize;
 };
