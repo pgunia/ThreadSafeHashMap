@@ -28,10 +28,10 @@ public:
 		const auto index = hashValue % mTableSize;
 
 		// retrieve mutex for hashmap row and lock
-		std::mutex * mutex = this->mMutexList[index];
+		std::recursive_mutex * mutex = this->mMutexList[index];
 
 		// automatically released when lock goes out of scope
-		std::lock_guard<std::mutex> lock(*mutex);
+		std::lock_guard<std::recursive_mutex> lock(*mutex);
 		auto entry = mTable[hashValue % mTableSize];
 
 		while (entry != NULL) {
@@ -51,10 +51,10 @@ public:
 		const size_t index = hashValue % mTableSize;
 
 		// retrieve mutex for hashmap row and lock
-		std::mutex * mutex = this->mMutexList[index];
+		std::recursive_mutex * mutex = this->mMutexList[index];
 
 		// automatically released when lock goes out of scope
-		std::lock_guard<std::mutex> lock(*mutex);
+		std::lock_guard<std::recursive_mutex> lock(*mutex);
 
 		auto entry = mTable[index];
 
@@ -84,10 +84,10 @@ public:
 		const size_t index = hashValue % mTableSize;
 
 		// retrieve mutex for hashmap row and lock
-		std::mutex * mutex = this->mMutexList[index];
+		std::recursive_mutex * mutex = this->mMutexList[index];
 
 		// automatically released when lock goes out of scope
-		std::lock_guard<std::mutex> lock(*mutex);
+		std::lock_guard<std::recursive_mutex> lock(*mutex);
 		auto entry = mTable[index];
 
 		while (entry != NULL && entry->getKey() != key) {
@@ -152,11 +152,11 @@ private:
 		mSize = 0;
 
 		// create a list of mutexes, one for every row in the hashmap
-		mMutexList = new std::mutex *[mTableSize]();
+		mMutexList = new std::recursive_mutex *[mTableSize]();
 
 		// initialize the mutex list
 		for (int i = 0; i < mTableSize; i++) {
-			mMutexList[i] = new std::mutex;
+			mMutexList[i] = new std::recursive_mutex;
 		}
 	}
 
@@ -189,5 +189,5 @@ private:
 	F mHashFunc;
 	int mSize;
 	int mTableSize;
-	std::mutex **mMutexList;
+	std::recursive_mutex **mMutexList;
 };
