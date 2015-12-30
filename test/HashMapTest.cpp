@@ -130,3 +130,26 @@ TEST(HashMapTest, SizeRemove) {
 	EXPECT_EQ(0, map.size());
 }
 
+TEST(HashMapTest, Resize) {
+	HashMap<int, string> map;
+	const string value = "value";
+	const int numberEntries = 200;
+	const int newTableSize = 10;
+
+	// add 100 entries
+	for (int i = 0; i < numberEntries; i++) {
+		map.put(i, value);
+	}
+	map.resize(newTableSize);
+
+	// number of entries should not have changed
+	EXPECT_EQ(numberEntries, map.size());
+
+	// test if all entries can be retrieved from the map and contain the correct value
+	string result;
+	for (int i = 0; i < numberEntries; i++) {
+		const bool success = map.get(i, result);
+		EXPECT_EQ(true, success);
+		EXPECT_EQ(result, value);
+	}
+}

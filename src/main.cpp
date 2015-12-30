@@ -8,12 +8,13 @@
 
 #include <iostream>
 #include <string>
-#include <Windows.h>
+// #include <Windows.h>
 #include "../include/HashMap.hpp"
 #include "Constants.hpp"
 
 using namespace std;
 
+/*
 void platformOutl( string s ) {
 	stringstream ss;
 	ss << s << endl;
@@ -50,3 +51,4 @@ int main( int argc, const char * argv[] ) {
 		platformOutl( value );;
 }
 
+*/
