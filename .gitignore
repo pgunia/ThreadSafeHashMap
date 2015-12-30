@@ -1,1 +1,6 @@
 /Debug/
+/Release/
+*.sdf
+*.opensdf
+*.suo
+*.swp
