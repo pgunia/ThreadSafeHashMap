@@ -4,9 +4,9 @@
 #include "HashNode.hpp"
 #include "KeyHash.hpp"
 #include <sstream>
-#include <vector>
 // #include <Windows.h>
 #include <functional>
+#include <mutex>
 
 // Hash map class template
 template<typename K, typename V, typename F = std::hash<K> >
@@ -23,7 +23,15 @@ public:
 	}
 
 	bool get(const K &key, V &value) {
-		auto hashValue = mHashFunc(key);
+
+		const auto hashValue = mHashFunc(key);
+		const auto index = hashValue % mTableSize;
+
+		// retrieve mutex for hashmap row and lock
+		std::mutex * mutex = this->mMutexList[index];
+
+		// automatically released when lock goes out of scope
+		std::lock_guard<std::mutex> lock(*mutex);
 		auto entry = mTable[hashValue % mTableSize];
 
 		while (entry != NULL) {
@@ -41,6 +49,13 @@ public:
 
 		HashNode<K, V> *prev = NULL;
 		const size_t index = hashValue % mTableSize;
+
+		// retrieve mutex for hashmap row and lock
+		std::mutex * mutex = this->mMutexList[index];
+
+		// automatically released when lock goes out of scope
+		std::lock_guard<std::mutex> lock(*mutex);
+
 		auto entry = mTable[index];
 
 		while (entry != NULL && entry->getKey() != key) {
@@ -56,7 +71,6 @@ public:
 			} else {
 				prev->setNext(entry);
 			}
-
 			mSize++;
 		} else {
 			// just update the value
@@ -68,6 +82,12 @@ public:
 		const auto hashValue = mHashFunc(key);
 		HashNode<K, V> *prev = NULL;
 		const size_t index = hashValue % mTableSize;
+
+		// retrieve mutex for hashmap row and lock
+		std::mutex * mutex = this->mMutexList[index];
+
+		// automatically released when lock goes out of scope
+		std::lock_guard<std::mutex> lock(*mutex);
 		auto entry = mTable[index];
 
 		while (entry != NULL && entry->getKey() != key) {
@@ -85,9 +105,7 @@ public:
 			} else {
 				prev->setNext(entry->getNext());
 			}
-
 			mSize--;
-
 			delete entry;
 		}
 	}
@@ -103,35 +121,43 @@ public:
 
 	void resize(const int newTableSize) {
 		const int numberOfEntries = mSize;
-		HashNode<K, V> ** cache = new HashNode<K,V>*[numberOfEntries];
+		HashNode<K, V> ** cache = new HashNode<K, V>*[numberOfEntries];
 		int entryCount = 0;
 
 		// cache all current entries in the table
-	   for(int i = 0; i < mTableSize; i++) {
-       HashNode<K,V> * entry = mTable[i];
-       while (entry != NULL) {
+		for (int i = 0; i < mTableSize; i++) {
+			HashNode<K, V> * entry = mTable[i];
+			while (entry != NULL) {
 				entry = entry->getNext();
 				cache[entryCount] = entry;
 				entryCount++;
 			}
 		}
 
-	   // purge old table
-	   purge();
-	   this->mTableSize = newTableSize;
-	   init();
+		// purge old table
+		purge();
+		this->mTableSize = newTableSize;
+		init();
 
-	   for(int i = 0; i < numberOfEntries; i++) {
-		   const HashNode<K,V>* cur = cache[i];
-		   put(cur->getKey(), cur->getValue());
-	   }
-	   delete cache;
+		for (int i = 0; i < numberOfEntries; i++) {
+			const HashNode<K, V>* cur = cache[i];
+			put(cur->getKey(), cur->getValue());
+		}
+		delete cache;
 	}
 
 private:
 	void init() {
 		mTable = new HashNode<K, V> *[mTableSize]();
 		mSize = 0;
+
+		// create a list of mutexes, one for every row in the hashmap
+		mMutexList = new std::mutex *[mTableSize]();
+
+		// initialize the mutex list
+		for (int i = 0; i < mTableSize; i++) {
+			mMutexList[i] = new std::mutex;
+		}
 	}
 
 	void purge() {
@@ -145,6 +171,14 @@ private:
 			}
 			mTable[i] = NULL;
 		}
+
+		// destroy all mutexes
+		for (int i = 0; i < mTableSize; i++) {
+			auto entry = mMutexList[i];
+			delete entry;
+		}
+		delete[] mMutexList;
+
 		// destroy the hash table
 		delete[] mTable;
 		mSize = 0;
@@ -155,4 +189,5 @@ private:
 	F mHashFunc;
 	int mSize;
 	int mTableSize;
+	std::mutex **mMutexList;
 };

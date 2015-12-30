@@ -32,6 +32,6 @@ private:
 	// key-value pair
 	K key;
 	V value;
-	// next bucket with the same key
+	// next node with the same key
 	HashNode *next;
 };
