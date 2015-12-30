@@ -14,6 +14,7 @@ public:
 	HashMap() {
 		// construct zero initialized hash table of size
 		mTable = new HashNode<K, V> *[constants::TABLE_SIZE]();
+		mSize = 0;
 	}
 
 	~HashMap() {
@@ -66,6 +67,8 @@ public:
 			} else {
 				prev->setNext( entry );
 			}
+
+			mSize++;
 		} else {
 			// just update the value
 			entry->setValue( value );
@@ -93,12 +96,20 @@ public:
 			} else {
 				prev->setNext( entry->getNext() );
 			}
+			
+			mSize--;
+
 			delete entry;
 		}
+	}
+
+	int size() {
+		return mSize;
 	}
 
 private:
 	// hash table
 	HashNode<K, V> **mTable;
 	F mHashFunc;
+	int mSize;
 };
