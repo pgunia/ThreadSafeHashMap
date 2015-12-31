@@ -5,8 +5,9 @@
  *      Author: Patrick
  */
 
-#include "HashMap.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <HashMap.hpp>
+
 using namespace std;
 
 TEST(HashMapTest, ValidPutTest) {
