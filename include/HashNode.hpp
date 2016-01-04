@@ -1,4 +1,5 @@
-#include "stddef.h"
+#ifndef HASHNODE_HPP_
+#define HASHNODE_HPP_
 
 // Hash node class template
 template<typename K, typename V>
@@ -29,9 +30,12 @@ public:
 	}
 
 private:
-	// key-value pair
+	// key-value pair to hold the entry data for the hashmap
 	K key;
 	V value;
-	// next node with the same key
+
+	// next node with the same map index
 	HashNode *next;
 };
+
+#endif /* HASHNODE_HPP_ */
