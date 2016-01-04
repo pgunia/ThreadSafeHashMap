@@ -104,39 +104,44 @@ public:
 		return mSize;
 	}
 
-	void resize(const int newTableSize) {
+	void resize(const int newTableRowCount) {
+
 		// acquire write lock for complete map, no other operations are allowed while purging is running
-		std::lock_guard < std::shared_timed_mutex> exclusiveMapLock(this->mMapMutex);
+		const std::lock_guard < std::shared_timed_mutex> exclusiveMapLock(this->mMapMutex);
 		const int numberOfEntries = mSize;
-		HashNode<K, V> ** cache = new HashNode<K, V>*[numberOfEntries];
+
+		const auto cache = new HashNode<K, V>*[numberOfEntries];
 		int entryCount = 0;
 
 		// cache all current entries in the table
 		for (int i = 0; i < mTableRowCount; i++) {
-			HashNode<K, V>* entry = mTable[i];
+			const HashNode<K, V>* entry = mTable[i];
 			while (entry != NULL) {
+                const auto key = entry->getKey();
+				const auto value = entry->getValue();
+
+				cache[entryCount] = new HashNode<K,V>(key, value);
 				entry = entry->getNext();
-				cache[entryCount] = new HashNode<K,V>(entry->getKey(), entry->getValue());
 				entryCount++;
 			}
 		}
 
 		// purge old table
-		// purge();
-		this->mTableRowCount = newTableSize;
+		purge();
+		this->mTableRowCount = newTableRowCount;
+
+		// create and initialize table data for new tableRowCount
 		init();
-		std::cout << "ENTRY COUNT: " << std::to_string(numberOfEntries) << " , STARTING TO ADD ENTRIES" << std::endl;
 		for (int i = 0; i < numberOfEntries; i++) {
-			const HashNode<K, V>* cur = cache[i];
-			if(cur == NULL) {
-				cout << "CUR IS NULL" << endl;
-			}
- 			std::cout << "KEY: " << std::to_string(cur->getKey()) << endl;
- 			cout << "TEST" << endl;
-			std::cout << "VALUE: " << cur->getValue() << endl;
+			const auto cur = cache[i];
 			putInternal(cur->getKey(), cur->getValue());
 		}
-		delete cache;
+
+		// delete all cache data
+		for(int i = 0; i < numberOfEntries; i++) {
+			delete cache[i];
+		}
+		delete[] cache;
 	}
 
 private:
@@ -155,14 +160,10 @@ private:
 	}
 
 	void putInternal(const K &key, const V &value) {
-		std::cout << "PUTINTERNAL" << std::endl;
-		std::cout << "ADDING " << std::to_string(key)  << " , VALUE: " << value << std::endl;
 		const size_t hashValue = mHashFunc(key);
 
 		HashNode<K, V> *prev = NULL;
 		const size_t index = hashValue % mTableRowCount;
-		std::cout << "KEY: " << std::to_string(key) << ", VALUE: " << value
-				<< ", INDEX: " << std::to_string(index) << std::endl;
 
 		// retrieve mutex for hashmap row and lock
 		std::shared_timed_mutex * mutex = this->mMutexList[index];

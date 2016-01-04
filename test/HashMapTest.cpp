@@ -141,10 +141,8 @@ TEST(HashMapTest, Resize) {
 		map.put(i, value);
 	}
 
-	std::cout << "ENTRIES: " << std::to_string(map.size()) << endl;
-
 	map.resize(newTableSize);
-	std::cout << "COMPLETED RESIZE" << std::endl;
+
 	// number of entries should not have changed
 	EXPECT_EQ(numberEntries, map.size());
 
