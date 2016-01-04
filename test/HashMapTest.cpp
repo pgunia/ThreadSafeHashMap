@@ -54,6 +54,7 @@ TEST(HashMapTest, RemovePut) {
 
 	success = map.get(1, result);
 	EXPECT_EQ(false, success);
+	// EXPECT_EQ(result, NULL);
 }
 
 TEST(HashMapTest, Clear) {
@@ -140,11 +141,8 @@ TEST(HashMapTest, Resize) {
 	for (int i = 0; i < numberEntries; i++) {
 		map.put(i, value);
 	}
-
-	std::cout << "ENTRIES: " << std::to_string(map.size()) << endl;
-
 	map.resize(newTableSize);
-std::cout << "COMPLETED RESIZE" << std::endl;
+
 	// number of entries should not have changed
 	EXPECT_EQ(numberEntries, map.size());
 
